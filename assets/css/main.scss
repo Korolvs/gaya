@@ -622,6 +622,9 @@ img {
 .page .banner_video {
   margin: -1em -1em 0 -1em;
   padding-bottom: 1em;
+  img {
+      width: 100%;
+  }
   @include MQ(M) {
     margin: -2em -2em 0 -2em;
   }
