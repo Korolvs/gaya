@@ -216,22 +216,12 @@ img {
   background: $color-white;
   margin-bottom: 3rem;
   border-bottom: 1px solid $gray-lighter;
-  width: 100%;
+  width: 75%;
   padding: 1em 0;  
   @include MQ(M){
     margin-bottom: 4rem;
     display: table;
     height: 50px;
-  }
-  
-  /* 
-   * Special media query hack for small tablet screen.
-   * Due to overlap of menu toggle and the logo.
-   */
-  @media (min-width: 768px) and (max-width: 991px) {
-    .container {
-      width: 75%;
-    }
   }
 }
 
