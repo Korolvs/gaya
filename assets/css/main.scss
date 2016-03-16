@@ -188,7 +188,7 @@ img {
 
 .container {
   width: 90%;
-  max-width: $M; // See breakpoints in css/_sass/helpers/_layout.scss
+  max-width: $L; // See breakpoints in css/_sass/helpers/_layout.scss
   margin: 0 auto;
 
   &::after { /* Clearfix */
@@ -622,6 +622,9 @@ img {
 .page .banner_video {
   margin: -1em -1em 0 -1em;
   padding-bottom: 1em;
+  img {
+      width: 100;
+  }
   @include MQ(M) {
     margin: -2em -2em 0 -2em;
   }
