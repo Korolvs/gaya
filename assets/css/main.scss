@@ -216,7 +216,10 @@ img {
   background: $color-white;
   margin-bottom: 3rem;
   border-bottom: 1px solid $gray-lighter;
-  width: 75%;
+  width: 100%;
+  .container {		
+       width: 75%;		
+    }
   padding: 1em 0;  
   @include MQ(M){
     margin-bottom: 4rem;
