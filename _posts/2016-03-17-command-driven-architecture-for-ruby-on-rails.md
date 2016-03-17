@@ -19,7 +19,7 @@ So main primitives are:
 - Models
 - Views
  
-Models and views are the same as in the original RoR architecture, so I am not writing about them in this article. Commands are simple actions that don`t know where they will be implemented and what will happen with the results. Controllers initialize commands and run them through a middleware chain. And middleware (not to be confused with rake middleware) is where the magic begins. Middleware is class with a method to do something and call a next middleware. Combining and rearranging middleware you can do with commands whatever you want. The basic example is *Validator* -> *Executor* -> *Renderer* chain of middleware. Want to return JSON or write response to a file? Add custom logger before or after command execution? Or run commands asynchronously? Just add a middleware!
+Models and views are the same as in the original RoR architecture, so I am not writing about them in this article. Commands are simple actions that don`t know where they will be implemented and what will happen with the results. Controllers initialize commands and run them through a middleware chain. And middleware (not to be confused with rake middleware) is where the magic begins. Middleware is class with a method to do something and call a next middleware. Combining and rearranging middleware you can do with commands whatever you want. The basic example is *Validator* -> *Executor* -> *Renderer*. Want to return JSON or write response to a file? Add custom logger before or after command execution? Or run commands asynchronously? Just add a middleware!
 
 If you want to see an example - [welcome](https://github.com/korolvs/thatsaboy)!
 
