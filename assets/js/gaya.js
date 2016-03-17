@@ -162,3 +162,42 @@ jQuery(document).ready(function($){
   });
 
 });
+
+/*
+ * Show and hide code blocks
+ */
+
+jQuery(document).ready(function($) {
+
+  var codes = $('figure.highlight');
+
+  $.each(codes, function(index, code){
+    var showButton = $("<pre class='pointer'><a>Show code</a></pre>");
+    var hideButton = $("<pre class='pointer'><a>Hide code</a></pre>");
+    hideButton.insertBefore(code);
+    showButton.insertBefore(code);
+    hideButton.hide();
+    $(code).hide();
+
+    showButton.click(function(){
+      $(code).show();
+      showButton.hide();
+      hideButton.show();
+    });
+
+    hideButton.click(function(){
+      $(code).hide();
+      hideButton.hide();
+      showButton.show();
+    });
+
+    var comments = $(code).children().children().children("span.c1");
+    if (comments.length > 0 && $(comments[0]).text() == '#showme!') {
+      $(comments[0]).remove();
+      $(code).show();
+      showButton.hide();
+      hideButton.hide();
+    }
+  });
+
+});

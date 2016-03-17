@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Command-driven architecture for Ruby on Rails"
-date:   2016-03-16 0:00:55
+date:   2016-03-17 0:00:55
 categories: Ruby
 banner_image: iloveruby.jpg
 comments: true
@@ -19,7 +19,7 @@ So main primitives are:
 - Models
 - Views
  
-Models and views are the same as in the original RoR architecture, so I am not writing about them in this article. Commands are simple actions that don`t know where they will be implemented and what will happen with the results. Controllers initialize commands and run them through a middleware chain. And middleware (not to be confused with rake middleware) is where the magic begins. Middleware is class with a method to do something and call a next middleware. Want to return JSON or write response to a file? Add custom logger before or after command execution? Or run commands asynchronously? Just add a middleware!
+Models and views are the same as in the original RoR architecture, so I am not writing about them in this article. Commands are simple actions that don`t know where they will be implemented and what will happen with the results. Controllers initialize commands and run them through a middleware chain. And middleware (not to be confused with rake middleware) is where the magic begins. Middleware is class with a method to do something and call a next middleware. Combining and rearranging middleware you can do with commands whatever you want. The basic example is *Validator* -> *Executor* -> *Renderer* chain of middleware. Want to return JSON or write response to a file? Add custom logger before or after command execution? Or run commands asynchronously? Just add a middleware!
 
 If you want to see an example - [welcome](https://github.com/korolvs/thatsaboy)!
 
@@ -36,6 +36,7 @@ The basic primitive in this architecture is a command. Command is a separated ac
 Each command must be inherited from the `Core::Command` class(or its child of course). Let's take a look at this class.
 
 {% highlight ruby %}
+#showme!
 # Contains common methods for commands
 class Core::Command
   include ActiveModel::Validations
@@ -74,6 +75,7 @@ It includes `ActiveModel::Validations` module to do validation and a token attri
 Here is an example of command:
 
 {% highlight ruby %}
+#showme!
 # Deletes a goal command
 class Goal::Command::GoalDeleteCommand < Core::Command
   attr_accessor :id
@@ -112,15 +114,54 @@ In commands you can use the same validators like in models and write your own. F
 Exists and unique validators use `model_to_validate` method and have as a parameter a lamba function to use the result in the query
 
 {% highlight ruby %}
+#showme!
   validates :id, presence: true,
                  'Core::Validator::Exists' => ->(x) { { id: x.id, deleted_at: nil } }
 {% endhighlight %}
 
 ## Controller
 
+`Core::Controller` has two methods:
+
+- middleware_list - to get the list of needed middleware
+- run - to run a command through this middleware
+
+{% highlight ruby %}
+# Common controller methods
+class Core::Controller < ActionController::Base
+  # Runs the action
+  # @param [Core::Command] command
+  # @see Core::CommandBus
+  def run(command)
+    Core::CommandBus.new(middleware_list).run(command)
+  end
+
+  # Returns a list of middleware needed to process commands
+  # @return [Array]
+  # @see Core::Middleware
+  # @see Core::Middleware::ErrorRenderer
+  # @see Core::Middleware::Renderer
+  # @see Core::Middleware::AuthorizationChecker
+  # @see Core::Middleware::ValidationChecker
+  # @see Core::Middleware::OwnerChecker
+  # @see Core::Middleware::Executor
+  def middleware_list
+    [
+        Core::Middleware::ErrorRenderer.new(self),
+        Core::Middleware::Renderer.new(self),
+        Core::Middleware::AuthorizationChecker.new,
+        Core::Middleware::ValidationChecker.new,
+        Core::Middleware::OwnerChecker.new,
+        Core::Middleware::Executor.new
+    ]
+  end
+end
+{% endhighlight %}
+
 As all logic is in commands, in controllers you need just to initialize command and run it. This is how it looks like:
 
 {% highlight ruby %}
+#showme!
 # Goal controller
 class Goal::GoalController < Core::Controller
   # Shows a goal
@@ -152,11 +193,6 @@ class Goal::GoalController < Core::Controller
   end
 end
 {% endhighlight %}
-
-`Core::Controller` has two methods:
-
-- middleware_list - to get the list of needed middleware
-- run - to run a command through this middleware
 
 ## Middleware
 
@@ -204,6 +240,32 @@ end
 
 This middleware calls the next middleware and catches all errors from the chain. It needs a controller to render errors. You can write your own error handler which will do some other actions with errors.
 
+### AuthorizationChecker
+
+This middleware checks that the right token is given. There are different types of tokens for different commands. `AuthorizationChecker` reads `authorization_rules.yml` file and makes the decision.
+
+{% highlight yaml %}
+#showme!
+test:
+  # User
+  - action: User::Command::LogoutCommand
+  - action: User::Command::ConfirmCommand
+    token: :confirmation
+  - action: User::Command::RecoveryCommand
+    token: :recovery
+  - action: User::Command::PinSetCommand
+  - action: User::Command::PinCheckCommand
+  - action: User::Command::ViewCommand
+  # File
+  - action: Uploaded::Command::PhotoCreateCommand
+  - action: Uploaded::Command::PhotoIndexCommand
+  - action: Uploaded::Command::PhotoDeleteCommand
+    owner: true
+    ....
+{% endhighlight %}
+
+The `owner` flag in this file is used as a signal for `OwnerChecker` to show that it is needed. With small changes this authorization system can become a full role-based access control system.
+
 ### Renderer
 
 {% highlight ruby %}
@@ -231,29 +293,64 @@ class Core::Middleware::Renderer < Core::Middleware
 end
 {% endhighlight %}
 
-### AuthorizationChecker
+### ValidationChecker
 
-This middleware checks that the right token is given. There are different types of tokens for different commands. `AuthorizationChecker` reads `authorization_rules.yml` file and makes the decision.
+{% highlight ruby %}
+# Default validation checker
+class Core::Middleware::ValidationChecker < Core::Middleware
+  # Checks that command is valid
+  # @return [[Core::Command], [Object]]
+  # @raise Core::Errors::ValidationError
+  def call
+    fail(Core::Errors::ValidationError, command) if command.invalid?
+    self.next
+  end
+end
+{% endhighlight %}
 
-```
-test:
-  # User
-  - action: User::Command::LogoutCommand
-  - action: User::Command::ConfirmCommand
-    token: :confirmation
-  - action: User::Command::RecoveryCommand
-    token: :recovery
-  - action: User::Command::PinSetCommand
-  - action: User::Command::PinCheckCommand
-  - action: User::Command::ViewCommand
-  # File
-  - action: Uploaded::Command::PhotoCreateCommand
-  - action: Uploaded::Command::PhotoIndexCommand
-  - action: Uploaded::Command::PhotoDeleteCommand
-    owner: true
-    ....
-```
+### OwnerChecker
 
-The `owner` flag in this file is used as a signal for `OwnerChecker` to show that it is needed. With small changes this authorization system can become a full role-based access control system.
+{% highlight ruby %}
+# Class that checks that user is the owner
+class Core::Middleware::OwnerChecker < Core::Middleware
+  include Core::Authorization
+
+  # Checks that user is the owner
+  # @return [[Core::Command], [Object]]
+  def call
+    owner?
+    self.next
+  end
+
+  private
+
+  # Checks all tests
+  # @raise Core::Errors::ForbiddenError
+  def owner?
+    rule = get_rule command
+    return if rule.blank?
+    return unless get_owner_param rule
+    token = get_token command
+    user = User::User.get_user_by_token_code(token.code, token.token_type)
+    model = command.model_to_validate
+    fail Core::Errors::ForbiddenError if model.where(user_id: user.id).first.nil?
+  end
+end
+{% endhighlight %}
+
+### Executor
+
+{% highlight ruby %}
+# Default executor for commands
+class Core::Middleware::Executor < Core::Middleware
+  # Runs a command
+  # @return [[Core::Command], [Object]]
+  def call
+    return command, command.execute
+  end
+end
+{% endhighlight %}
+
+
 
 # Conslusion

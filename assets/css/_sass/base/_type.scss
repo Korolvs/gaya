@@ -168,7 +168,8 @@ ol {
   }
 
   li {
-    line-height: $list-style-line-height;
+    line-height: 1.6;
+    font-size: $font-size-p;
   }
 }
 
