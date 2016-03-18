@@ -128,6 +128,9 @@ jQuery(document).ready(function() {
     initDisqusComments();
     $(this).fadeOut(200);
   });
+
+  initDisqusComments();
+  $('.load-view').fadeOut(200);
 });
 
 /*

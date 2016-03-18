@@ -1,24 +1,24 @@
 # Site settings
-title: Your awesome title
-tagline: And Tagline
+title: Viacheslav Korolev
+tagline: Full Stack Software Engineer
 email: korolvs@gmail.com
 description: > # this means to ignore newlines until "baseurl:"
   Hi, I’m a professional full stack software engineer. 
-  I love being minimal and creative.
-baseurl: "/gaya" # the subpath of your site, e.g. /blog/
-url: "http://korolvs.github.io" # the base hostname & protocol for your site
-logourl: /assets/images/logo.png # Site logo
+  I love Ruby on Rails and prefer to use AngularJS.
+baseurl: "" # the subpath of your site, e.g. /blog/
+url: "http://korolvs.com" # the base hostname & protocol for your site
+logourl: /assets/images/ruby.svg # Site logo
 author: "Viacheslav Korolev"
 author_thumbnail: "/assets/images/avatar.jpg" # Author avatar
 # Theme customization - please change from the defaults!
 theme:
   # Color for sidebar bar, links, etc
-  highlight_color: "#205081" #205081" # "#272935"
+  highlight_color: "#9f0213" #"#a80518" #205081" # "#272935"
   # Social media links, leave blank to ignore
   social: 
     github: korolvs
     #twitter: gayanvirajith
-    facebook: korolvs
+    facebook: iamkorolev
     # gplus: +gayanvirajith
     # dribble: gayanvirajith
     #pinterest: gayanvirajith
@@ -30,7 +30,7 @@ theme:
   show_author_info: true
 
   # Disqus comments manager - shortname
-  # disqus_shortname: gaya-webcreate
+  disqus_shortname: korolvs
 
   # Google Analytics/Webmaster key, leave blank to ignore
   google_analytics_key: 

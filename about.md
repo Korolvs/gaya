@@ -6,15 +6,11 @@ banner_image: paris.jpg
 banner_image_alt: About me
 ---
 
-Hi, I am Tom Warlker. I am a professional UI/UX designrer and web developer. I love being minimal and creative.
-
-I prefer to serve with Php and Ruby based stacks and also love to work 
-on [Jekyll][jekyll] and [Processwire CMS/CMF][pw].
+Hi, I am Viacheslav Korolev. Hi, I’m a professional Ruby On Rails developer with love to AngularJS and clear server architecture using Docker. A big fan of tests and well-documented code.
 
 ### Contact me
 
-Say `Hello` at gayanvirajith@gmail.com or find
-me on
+Say `Hello` at iam@korolvs.com or find me on:
 
 ---
 
