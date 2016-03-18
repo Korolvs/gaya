@@ -4,7 +4,6 @@ title:  "Command-driven architecture for Ruby on Rails"
 date:   2016-03-17 11:00:55
 categories: Ruby
 banner_image: iloveruby.jpg
-permalink: "command-driven-architecture-for-ruby-on-rails"
 meta_description: "Ruby on Rails is a great framework for a quick start, but when a project gets much bigger, a lot of files in controllers, models and views folders can converts to a strong headache for a developer. The architecture described in this article extends a common MVC approach with adding some new primitives to an application to make code clear and flexible."
 comments: true
 ---
