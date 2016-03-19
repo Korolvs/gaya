@@ -9,7 +9,7 @@ comments: true
 
 Ruby on Rails is a great framework for a quick start, but when a project gets much bigger, a lot of files in controllers, models and views folders can converts to a strong headache for a developer (especially if the developer made some bad decisions at the start of working on the project). Each change affected to a big amount of files becomes a real problem. The best way to solve this problems is to use a good architecture from very start of developing the project.
 
-The architecture described in this article extends a common MVC approach with adding some new primitives to an application.
+The architecture described in this article extends a common MVC approach with adding some new primitives to an application. It doesn`t break the standart RoR approach and only extends it.
 
 So main primitives are:
 
