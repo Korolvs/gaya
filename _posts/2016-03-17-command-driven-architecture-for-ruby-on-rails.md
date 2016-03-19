@@ -356,3 +356,5 @@ end
 # Conslusion
 
 As you see above this approach can make code clear and flexible. Each command contains 5-10 lines of code for one certain purpose. These commands can be executed in different parts of an application such as a controller or some rake task. And middleware is a simple unit responsible for one action with a command. Just adding, removing or rearranging middleware you can run your commands in many different ways.
+
+You can see an example [here](https://github.com/korolvs/thatsaboy).
