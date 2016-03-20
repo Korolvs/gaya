@@ -3,13 +3,13 @@ layout: post
 title:  "Command-driven architecture for Ruby on Rails"
 date:   2016-03-17 11:00:55
 banner_image: iloveruby.jpg
-meta_description: "Ruby on Rails is a great framework for a quick start, but when a project gets much bigger, a lot of files in controllers, models and views folders can converts to a strong headache for a developer. The architecture described in this article extends a common MVC approach with adding some new primitives to an application to make code clear and flexible."
+meta_description: "Ruby on Rails is a great framework for a quick start, but when project gets much bigger, tens of files in controllers, models and views directories can become a huge headache for a developer. The architecture described in this article extends a common MVC approach with adding few new primitives to an application. It doesn't break the standart RoR approach, but only extends it."
 comments: true
 ---
 
-Ruby on Rails is a great framework for a quick start, but when a project gets much bigger, a lot of files in controllers, models and views folders can converts to a strong headache for a developer (especially if the developer made some bad decisions at the start of working on the project). Each change affected to a big amount of files becomes a real problem. The best way to solve this problems is to use a good architecture from very start of developing the project.
+Ruby on Rails is a great framework for a quick start, but when project gets much bigger, tens of files in controllers, models and views directories can become a huge headache for a developer (especially if the developer made few bad decisions at the beginning of working on the project). Each edit affecting more than few files becomes a real problem. The best way to solve this problems is to use a good architecture from very start of developing the project.
 
-The architecture described in this article extends a common MVC approach with adding some new primitives to an application. It doesn`t break the standart RoR approach and only extends it.
+The architecture described in this article extends a common MVC approach with adding few new primitives to an application. It doesn't break the standart RoR approach, but only extends it.
 
 So main primitives are:
 
@@ -19,15 +19,15 @@ So main primitives are:
 - Models
 - Views
  
-Models and views are the same as in the original RoR architecture, so I am not writing about them in this article. Commands are simple actions that don`t know where they will be implemented and what will happen with the results. Controllers initialize commands and run them through a middleware chain. And middleware (not to be confused with rake middleware) is where the magic begins. Middleware is class with a method to do something and call a next middleware. Combining and rearranging middleware you can do with commands whatever you want. The basic example is *Validator* -> *Executor* -> *Renderer*. Want to return JSON or write response to a file? Add custom logger before or after command execution? Or run commands asynchronously? Just add a middleware!
+Models and views are the same as in the original RoR architecture, so I am not touching them in this article. Commands are simple actions that don`t know where they will be implemented and where the results go. Controllers used to initialize commands and run them through a middleware chain. And middleware (not to be confused with rake middleware) is where the magic begins. Middleware is class with a method to do something and call a next middleware. Combining and rearranging middleware you can do with commands whatever you want. The basic example is *Validator* -> *Executor* -> *Renderer*. Want to return JSON or write response to a file? Add custom logger before or after command execution? Or run commands asynchronously? Just add a middleware!
 
 If you want to see an example - [welcome](https://github.com/korolvs/thatsaboy)!
 
-I’m using a project without views as an example and views aren’t described below but you can simply use this architecture for this type of projects as well. So let's take a closer look. 
+I’m using a project without views as an example and views aren’t described below but you can simply use this architecture for this type of projects as well. So let’s take a closer look.
 
 ## Modules
 
-First of all, to avoid mess in the project it is needed to divide all files to modules. Each module has a one declaration file in models folder and two own folders - one in controllers and one in models. Module contains all the files related to it. The best way is to make modules highly separated from each over. The common examples of modules can be users module and files module.
+First of all, to avoid making a mess in the project it is needed to divide all files to modules. Each module has a one declaration file  and two own folders - one in controllers and one in models. Module contains all the files related to it. The best way is to make modules highly separated from each over. The common examples of modules can be users module and files module.
 
 ## Command
 
@@ -102,7 +102,7 @@ end
 
 ### Validation
 
-In the original RoR architecture there is only model validation, so why do we need to use action validation? With this approach you can easily check all input parameters and return to a user what is exactly wrong before running the main code of a command . After this you don’t need to catch any validation errors in the code and it becomes much more clear. Also you can add a model validation too.  
+In the original RoR architecture there is only a model validation, so why do we need to use an action validation? With this approach you can easily check all input parameters and return to a user what is exactly wrong before running the main code of a command . After this you don’t need to catch any validation errors in the code and it becomes much more clear. Also you can add a model validation.
 
 In commands you can use the same validators like in models and write your own. For instance, I wrote four common validators:
 
@@ -355,6 +355,6 @@ end
 
 # Conslusion
 
-As you see above this approach can make code clear and flexible. Each command contains 5-10 lines of code for one certain purpose. These commands can be executed in different parts of an application such as a controller or some rake task. And middleware is a simple unit responsible for one action with a command. Just adding, removing or rearranging middleware you can run your commands in many different ways.
+As you can see, this approach can make code clear and flexible. Each command contains 5-10 lines of code for one certain purpose. These commands can be executed in different parts of an application such as a controller or some rake task. And middleware is a simple unit responsible for one action with a command. Just by adding, removing or rearranging middleware you can run your commands in many different ways.
 
 You can see an example [here](https://github.com/korolvs/thatsaboy).
