@@ -23,6 +23,11 @@ ul.social-media {
       background-color: $color-white;
     }
   }
+
+  li a.linkedin {
+    background-image: url("./images/linkedin.svg");
+    background-size: 12px 12px;
+  }
     
   li a.twitter {
     background-position: 0 0;
