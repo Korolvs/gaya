@@ -27,13 +27,13 @@ I’m using a project without views as an example and views aren’t described b
 
 ## Modules
 
-First of all, to avoid making a mess in the project it is needed to divide all files to modules. Each module has a one declaration file  and two own folders - one in controllers and one in models. Module contains all the files related to it. The best way is to make modules highly separated from each over. The common examples of modules can be users module and files module.
+First of all, to avoid making a mess in the project it is needed to divide all files to modules. Each module has a one declaration file  and two own folders - one in controllers and one in models. Module contains all the files related to it. The best way is to make modules highly separated from each over.
 
 ## Command
 
 The basic primitive in this architecture is a command. Command is a separated action, for instance creating an object or deleting it. Each command contains a validation part and main part that makes all needed actions. Execute method contains business logic and can return a hash or nothing if it doesn’t needed.
 
-Each command must be inherited from the `Core::Command` class(or its child of course). Let's take a look at this class.
+Each command must be inherited from the `Core::Command` class(or its child, of course). Let's take a look at this class.
 
 {% highlight ruby %}
 #showme!
@@ -196,7 +196,7 @@ end
 
 ## Middleware
 
-Middleware is a class with a `call` method to make all needed actions with a command (or without it). Also there is a protected `next` method to call the next middleware in a chain. Method `next` can be called after, before or even between main actions in the `call` method and must returns the command and the result of its actions. 
+Middleware is a class with a `call` method, which is responsible for making all needed actions with a command (or without it). Also there is a protected `next` method to call the next middleware in a chain. Method `next` can be called after, before or even between main actions in the `call` method and must returns the command and the result of its actions. 
 
 The default list of middleware in a controller is:
 
