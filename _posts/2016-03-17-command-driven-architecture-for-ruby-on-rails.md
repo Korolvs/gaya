@@ -19,7 +19,7 @@ So main primitives are:
 - Models
 - Views
  
-Models and views are the same as in the original RoR architecture, so I am not touching them in this article. Commands are simple actions that don`t know where they will be implemented and where the results go. Controllers used to initialize commands and run them through a middleware chain. And middleware (not to be confused with rake middleware) is where the magic begins. Middleware is class with a method to do something and call a next middleware. Combining and rearranging middleware you can do with commands whatever you want. The basic example is *Validator* -> *Executor* -> *Renderer*. Want to return JSON or write response to a file? Add custom logger before or after command execution? Or run commands asynchronously? Just add a middleware!
+Models and views are the same as in the original RoR architecture, so I am not touching them in this article. Commands are simple actions that don`t know where they will be implemented and where the results go. Controllers used to initialize commands and run them through a middleware chain. And middleware (not to be confused with rake middleware) is where the magic begins. Middleware is a class with a method to do something and call a next middleware. You can do combining and rearranging middleware with any commands you want. The basic example is *Validator* -> *Executor* -> *Renderer*. Want to return JSON or write response to a file? Add custom logger before or after command execution? Or run commands asynchronously? Just add a middleware!
 
 If you want to see an example - [welcome](https://github.com/korolvs/thatsaboy)!
 
@@ -355,6 +355,6 @@ end
 
 # Conslusion
 
-As you can see, this approach can make code clear and flexible. Each command contains 5-10 lines of code for one certain purpose. These commands can be executed in different parts of an application such as a controller or some rake task. And middleware is a simple unit responsible for one action with a command. Just by adding, removing or rearranging middleware you can run your commands in many different ways.
+As you can see, this approach makes code clear and flexible. Each command contains 5-10 lines of code for one certain purpose. These commands can be executed in different parts of an application such as a controller or some rake task. Moreover, middleware is a simple unit responsible for one action with a command. Just by adding, removing or rearranging middleware you can run your commands in many different ways.
 
-You can see an example [here](https://github.com/korolvs/thatsaboy).
+Check the example [here](https://github.com/korolvs/thatsaboy).
