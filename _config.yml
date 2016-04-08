@@ -3,8 +3,8 @@ title: Viacheslav Korolev
 tagline: Full Stack Software Engineer
 email: korolvs@gmail.com
 description: > # this means to ignore newlines until "baseurl:"
-  Hi, I’m a professional full stack software engineer. 
-  I love Ruby on Rails and prefer to use AngularJS.
+  Hi, I’m a professional Ruby on Rails and AngularJS developer with love to clear code and server architecture.
+  A big fan of tests, well-documented code and learning something new.
 baseurl: "" # the subpath of your site, e.g. /blog/
 url: "http://korolvs.com" # the base hostname & protocol for your site
 logourl: /assets/images/ruby.svg # Site logo
