@@ -2,7 +2,7 @@
 layout: post
 title:  "Command-driven architecture for Ruby on Rails"
 date:   2016-03-17 11:00:55
-banner_image: iloveruby.jpg
+banner_image: command.jpg
 meta_description: "Ruby on Rails is a great framework for a quick start, but when project gets much bigger, tens of files in controllers, models and views directories can become a huge headache for a developer. The architecture described in this article extends a common MVC approach with adding few new primitives to an application. It doesn't break the standart RoR approach, but only extends it."
 comments: true
 ---
@@ -13,17 +13,32 @@ The architecture described in this article extends a common MVC approach with ad
 
 So main primitives are:
 
+*Application Layer:*
+
 - Commands
 - Middleware
 - Controllers
-- Models
 - Views
+
+*Domain Layer:*
+
+- Services
+- Repositories
+- Factories
+- Viewers
+- Entities
  
-Models and views are the same as in the original RoR architecture, so I am not touching them in this article. Commands are simple actions that don`t know where they will be implemented and where the results go. Controllers used to initialize commands and run them through a middleware chain. And middleware (not to be confused with rake middleware) is where the magic begins. Middleware is a class with a method to do something and call a next middleware. You can do combining and rearranging middleware with any commands you want. The basic example is *Validator* -> *Executor* -> *Renderer*. Want to return JSON or write response to a file? Add custom logger before or after command execution? Or run commands asynchronously? Just add a middleware!
+I will write about services, repositories, factories, viewers and entities in the [next part]({% post_url 2016-05-08-domain-driven-design-for-rails %}), so I am not touching them in this article. The only thing you need to know, that all logic applies to models should be placed in the domain layer.
+
+## Why should you to read it?
+
+You should to read it, because using such approach, you can achieve greater flexibility and ease of maintenance, when your project become bigger. Just read the next paragraph.
+
+Commands are simple classes with only one certain purpose. Controllers used to initialize commands and run them through a middleware chain and middleware (not to be confused with rake middleware) is where the magic begins. Middleware is a class with a method to do something and call a next middleware. You can combine and rearrange middleware as you like. The basic example is *Validator* -> *Executor* -> *Renderer*. Want to return JSON or write response to a file? Add custom logger before or after command execution? Or run commands asynchronously? Just add a middleware!
 
 If you want to see an example - [welcome](https://github.com/korolvs/thatsaboy)!
 
-I’m using a project without views as an example and views aren’t described below but you can simply use this architecture for this type of projects as well. So let’s take a closer look.
+So let’s take a closer look.
 
 ## Modules
 
@@ -56,46 +71,41 @@ class Core::Command
   # Runs command
   def execute
   end
-
-  # Gets the model to validate
-  # @return [Class]
-  # @raise Core::Errors::NoModelToValidateError
-  def model_to_validate
-    fail Core::Errors::NoModelToValidateError
-  end
 end
 {% endhighlight %}
 
-It includes `ActiveModel::Validations` module to do validation and a token attribute that is very common and needed for authorization. Also there are three methods:
+It includes `ActiveModel::Validations` module to do validation and a token attribute that is very common and needed for authorization. Also there are two methods:
 
-- initialize - fills a command with given attributes and makes it very easy to use commands with different input parameters.
+- initialize - fills a command with given attributes and makes it very easy to use commands with different input parameters. Also here should be initialized all services and models used in the command
 - execute - dummy method which must be overridden in every child
-- model_to_validate - returns a model needed to some validation like exists validator and unique validator
 
 Here is an example of command:
 
 {% highlight ruby %}
 #showme!
-# Deletes a goal command
+# Delete a goal command
 class Goal::Command::GoalDeleteCommand < Core::Command
   attr_accessor :id
+  attr_accessor :goal_repository
 
   validates :id, presence: true,
-                 'Core::Validator::Exists' => ->(x) { { id: x.id, deleted_at: nil } }
+                 'Core::Validator::Exists' => ->(x) { x.goal_repository.find_not_deleted(x.id) }
+  validates :id, 'Core::Validator::Owner' => ->(x) { x.goal_repository.find(x.id) }
+
+  # Sets all variables
+  # @param [Object] params
+  # @see Goal::Repository::GoalRepository
+  def initialize(params)
+    super(params)
+    @goal_repository = Goal::Repository::GoalRepository.new
+  end
 
   # Runs command
   # @return [Hash]
   def execute
-    goal = Goal::Goal.where(id: id).first
-    goal.deleted_at = DateTime.now.utc
-    goal.save
+    goal = @goal_repository.find(id)
+    @goal_repository.delete(goal)
     nil
-  end
-
-  # Gets the model to validate
-  # @return [Class]
-  def model_to_validate
-    Goal::Goal
   end
 end
 {% endhighlight %}
@@ -104,19 +114,20 @@ end
 
 In the original RoR architecture there is only a model validation, so why do we need to use an action validation? With this approach you can easily check all input parameters and return to a user what is exactly wrong before running the main code of a command . After this you don’t need to catch any validation errors in the code and it becomes much more clear. Also you can add a model validation.
 
-In commands you can use the same validators like in models and write your own. For instance, I wrote four common validators:
+In commands you can use the same validators like in models and write your own. For instance, I wrote five common validators:
 
 - Exists
 - Unique
 - Content Type
+- Owner
 - Uri
 
-Exists and unique validators use `model_to_validate` method and have as a parameter a lamba function to use the result in the query
+Exists and unique validators have as a parameter a lamba function to use the result and check it.
 
 {% highlight ruby %}
 #showme!
   validates :id, presence: true,
-                 'Core::Validator::Exists' => ->(x) { { id: x.id, deleted_at: nil } }
+                 'Core::Validator::Exists' => ->(x) { x.goal_repository.find_not_deleted(x.id) }
 {% endhighlight %}
 
 ## Controller
@@ -143,7 +154,6 @@ class Core::Controller < ActionController::Base
   # @see Core::Middleware::Renderer
   # @see Core::Middleware::AuthorizationChecker
   # @see Core::Middleware::ValidationChecker
-  # @see Core::Middleware::OwnerChecker
   # @see Core::Middleware::Executor
   def middleware_list
     [
@@ -151,14 +161,13 @@ class Core::Controller < ActionController::Base
         Core::Middleware::Renderer.new(self),
         Core::Middleware::AuthorizationChecker.new,
         Core::Middleware::ValidationChecker.new,
-        Core::Middleware::OwnerChecker.new,
         Core::Middleware::Executor.new
     ]
   end
 end
 {% endhighlight %}
 
-As all logic is in commands, in controllers you need just to initialize command and run it. This is how it looks like:
+As all business logic is in commands(and services), in controllers you need just to initialize command and run it. This is how it looks like:
 
 {% highlight ruby %}
 #showme!
@@ -204,7 +213,6 @@ The default list of middleware in a controller is:
 - Core::Middleware::Renderer
 - Core::Middleware::AuthorizationChecker
 - Core::Middleware::ValidationChecker
-- Core::Middleware::OwnerChecker
 - Core::Middleware::Executor
  
 Let's look on some examples:
@@ -233,7 +241,7 @@ class Core::Middleware::ErrorRenderer < Core::Middleware
   rescue Core::Errors::ValidationError => e
     controller.render json: e.command.errors, status: 422
   rescue StandardError => e
-    controller.render json: { error: e.message }, status: 500
+    controller.render json: { error: e.message, backtrace: e.backtrace }, status: 500
   end
 end
 {% endhighlight %}
@@ -260,11 +268,8 @@ test:
   - action: Uploaded::Command::PhotoCreateCommand
   - action: Uploaded::Command::PhotoIndexCommand
   - action: Uploaded::Command::PhotoDeleteCommand
-    owner: true
     ....
 {% endhighlight %}
-
-The `owner` flag in this file is used as a signal for `OwnerChecker` to show that it is needed. With small changes this authorization system can become a full role-based access control system.
 
 ### Renderer
 
@@ -302,38 +307,8 @@ class Core::Middleware::ValidationChecker < Core::Middleware
   # @return [[Core::Command], [Object]]
   # @raise Core::Errors::ValidationError
   def call
-    fail(Core::Errors::ValidationError, command) if command.invalid?
+    raise(Core::Errors::ValidationError, command) if command.invalid?
     self.next
-  end
-end
-{% endhighlight %}
-
-### OwnerChecker
-
-{% highlight ruby %}
-# Class that checks that user is the owner
-class Core::Middleware::OwnerChecker < Core::Middleware
-  include Core::Authorization
-
-  # Checks that user is the owner
-  # @return [[Core::Command], [Object]]
-  def call
-    owner?
-    self.next
-  end
-
-  private
-
-  # Checks all tests
-  # @raise Core::Errors::ForbiddenError
-  def owner?
-    rule = get_rule command
-    return if rule.blank?
-    return unless get_owner_param rule
-    token = get_token command
-    user = User::User.get_user_by_token_code(token.code, token.token_type)
-    model = command.model_to_validate
-    fail Core::Errors::ForbiddenError if model.where(user_id: user.id).first.nil?
   end
 end
 {% endhighlight %}
@@ -346,7 +321,7 @@ class Core::Middleware::Executor < Core::Middleware
   # Runs a command
   # @return [[Core::Command], [Object]]
   def call
-    return command, command.execute
+    command, command.execute
   end
 end
 {% endhighlight %}
@@ -358,3 +333,5 @@ end
 As you can see, this approach makes code clear and flexible. Each command contains 5-10 lines of code for one certain purpose. These commands can be executed in different parts of an application such as a controller or some rake task. Moreover, middleware is a simple unit responsible for one action with a command. Just by adding, removing or rearranging middleware you can run your commands in many different ways.
 
 Check the example [here](https://github.com/korolvs/thatsaboy).
+
+And read about [the domain layer]({% post_url 2016-05-08-domain-driven-design-for-rails %}).
