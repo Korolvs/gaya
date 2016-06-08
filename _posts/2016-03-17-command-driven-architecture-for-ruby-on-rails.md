@@ -30,9 +30,9 @@ So main primitives are:
  
 I will write about services, repositories, factories, viewers and entities in the [next part]({% post_url 2016-05-08-domain-driven-design-for-rails %}), so I am not touching them in this article. The only thing you need to know, that all logic applies to models should be placed in the domain layer.
 
-## Why should you to read it?
+## Why should you read it?
 
-You should to read it, because using such approach, you can achieve greater flexibility and ease of maintenance, when your project become bigger. Just read the next paragraph.
+You should read it, because using such approach, you can achieve greater flexibility and ease of maintenance, when your project become bigger. Just read the next paragraph.
 
 Commands are simple classes with only one certain purpose. Controllers used to initialize commands and run them through a middleware chain and middleware (not to be confused with rake middleware) is where the magic begins. Middleware is a class with a method to do something and call a next middleware. You can combine and rearrange middleware as you like. The basic example is *Validator* -> *Executor* -> *Renderer*. Want to return JSON or write response to a file? Add custom logger before or after command execution? Or run commands asynchronously? Just add a middleware!
 
