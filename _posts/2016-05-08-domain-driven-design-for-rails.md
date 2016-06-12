@@ -7,7 +7,7 @@ meta_description: "Domain-driven design for Ruby on Rails."
 comments: true
 ---
 
-In [previous article]({% post_url 2016-03-17-command-driven-architecture-for-ruby-on-rails %}) I wrote about the application layer(controllers, middleware and commands), so if you want to get the full vision of the architecture I am talking about - read the first part. Now let's talk about the domain layer.
+In [previous article]({% post_url 2016-03-17-command-driven-architecture-for-ruby-on-rails %}) I wrote about the application layer(controllers, filters and commands), so if you want to get the full vision of the architecture I am talking about - read the first part. Now let's talk about the domain layer.
 
 ## Why do you need to use this approach instead of ordinary models?
 
@@ -204,4 +204,4 @@ An **Aggregate** is a cluster of domain objects that can be treated as a single 
 
 Using this approach you will create more classes and code - it's bad, but you will never get your code messy or convoluted. In the end it will be very easy to find where needed methods are stored and where to add new.
 
-Check the example [here](https://github.com/korolvs/thatsaboy).
+Check the example [here](https://github.com/korolvs/thatsaboy/tree/cda-ddd).

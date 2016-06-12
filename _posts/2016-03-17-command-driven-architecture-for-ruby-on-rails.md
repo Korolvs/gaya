@@ -16,7 +16,7 @@ So main primitives are:
 *Application Layer:*
 
 - Commands
-- Middleware
+- Filters
 - Controllers
 - Views
 
@@ -34,9 +34,9 @@ I will write about services, repositories, factories, viewers and entities in th
 
 You should read it, because using such approach, you can achieve greater flexibility and ease of maintenance, when your project become bigger. Just read the next paragraph.
 
-Commands are simple classes with only one certain purpose. Controllers used to initialize commands and run them through a middleware chain and middleware (not to be confused with rake middleware) is where the magic begins. Middleware is a class with a method to do something and call a next middleware. You can combine and rearrange middleware as you like. The basic example is *Validator* -> *Executor* -> *Renderer*. Want to return JSON or write response to a file? Add custom logger before or after command execution? Or run commands asynchronously? Just add a middleware!
+Commands are simple classes with only one certain purpose. Controllers used to initialize commands and run them through a filters chain. Filter is a class with a method to do something and call a next filter. You can combine and rearrange filters as you like. The basic example is *Validator* -> *Executor* -> *Renderer*. Want to return JSON or write response to a file? Add custom logger before or after command execution? Or run commands asynchronously? Just add a filter!
 
-If you want to see an example - [welcome](https://github.com/korolvs/thatsaboy)!
+If you want to see an example - [welcome](https://github.com/korolvs/thatsaboy/tree/cda-ddd)!
 
 So let’s take a closer look.
 
@@ -134,8 +134,8 @@ Exists and unique validators have as a parameter a lamba function to use the res
 
 `Core::Controller` has two methods:
 
-- middleware_list - to get the list of needed middleware
-- run - to run a command through this middleware
+- filters_list - to get the list of needed filters
+- run - to run a command through this filters
 
 {% highlight ruby %}
 # Common controller methods
@@ -144,24 +144,24 @@ class Core::Controller < ActionController::Base
   # @param [Core::Command] command
   # @see Core::CommandBus
   def run(command)
-    Core::CommandBus.new(middleware_list).run(command)
+    Core::CommandBus.new(filters_list).run(command)
   end
 
-  # Returns a list of middleware needed to process commands
+  # Returns a list of filters needed to process commands
   # @return [Array]
-  # @see Core::Middleware
-  # @see Core::Middleware::ErrorRenderer
-  # @see Core::Middleware::Renderer
-  # @see Core::Middleware::AuthorizationChecker
-  # @see Core::Middleware::ValidationChecker
-  # @see Core::Middleware::Executor
-  def middleware_list
+  # @see Core::Filter
+  # @see Core::Filter::ErrorRenderer
+  # @see Core::Filter::Renderer
+  # @see Core::Filter::AuthorizationChecker
+  # @see Core::Filter::ValidationChecker
+  # @see Core::Filter::Executor
+  def filters_list
     [
-        Core::Middleware::ErrorRenderer.new(self),
-        Core::Middleware::Renderer.new(self),
-        Core::Middleware::AuthorizationChecker.new,
-        Core::Middleware::ValidationChecker.new,
-        Core::Middleware::Executor.new
+        Core::Filter::ErrorRenderer.new(self),
+        Core::Filter::Renderer.new(self),
+        Core::Filter::AuthorizationChecker.new,
+        Core::Filter::ValidationChecker.new,
+        Core::Filter::Executor.new
     ]
   end
 end
@@ -203,17 +203,17 @@ class Goal::GoalController < Core::Controller
 end
 {% endhighlight %}
 
-## Middleware
+## Filters
 
-Middleware is a class with a `call` method, which is responsible for making all needed actions with a command (or without it). Also there is a protected `next` method to call the next middleware in a chain. Method `next` can be called after, before or even between main actions in the `call` method and must returns the command and the result of its actions. 
+Filter is a class with a `call` method, which is responsible for making all needed actions with a command (or without it). Also there is a protected `next` method to call the next filter in a chain. Method `next` can be called after, before or even between main actions in the `call` method and must returns the command and the result of its actions.
 
-The default list of middleware in a controller is:
+The default list of filters in a controller is:
 
-- Core::Middleware::ErrorRenderer
-- Core::Middleware::Renderer
-- Core::Middleware::AuthorizationChecker
-- Core::Middleware::ValidationChecker
-- Core::Middleware::Executor
+- Core::Filter::ErrorRenderer
+- Core::Filter::Renderer
+- Core::Filter::AuthorizationChecker
+- Core::Filter::ValidationChecker
+- Core::Filter::Executor
  
 Let's look on some examples:
 
@@ -221,7 +221,7 @@ Let's look on some examples:
 
 {% highlight ruby %}
 # Error handler that render errors
-class Core::Middleware::ErrorRenderer < Core::Middleware
+class Core::Filter::ErrorRenderer < Core::Filter
   attr_accessor :controller
 
   # Sets a controller to render
@@ -246,11 +246,11 @@ class Core::Middleware::ErrorRenderer < Core::Middleware
 end
 {% endhighlight %}
 
-This middleware calls the next middleware and catches all errors from the chain. It needs a controller to render errors. You can write your own error handler which will do some other actions with errors.
+This filter calls the next filter and catches all errors from the chain. It needs a controller to render errors. You can write your own error handler which will do some other actions with errors.
 
 ### AuthorizationChecker
 
-This middleware checks that the right token is given. There are different types of tokens for different commands. `AuthorizationChecker` reads `authorization_rules.yml` file and makes the decision.
+This filter checks that the right token is given. There are different types of tokens for different commands. `AuthorizationChecker` reads `authorization_rules.yml` file and makes the decision.
 
 {% highlight yaml %}
 #showme!
@@ -275,7 +275,7 @@ test:
 
 {% highlight ruby %}
 # Renderer
-class Core::Middleware::Renderer < Core::Middleware
+class Core::Filter::Renderer < Core::Filter
   attr_accessor :controller
 
   # Sets a controller to render
@@ -302,7 +302,7 @@ end
 
 {% highlight ruby %}
 # Default validation checker
-class Core::Middleware::ValidationChecker < Core::Middleware
+class Core::Filter::ValidationChecker < Core::Filter
   # Checks that command is valid
   # @return [[Core::Command], [Object]]
   # @raise Core::Errors::ValidationError
@@ -317,7 +317,7 @@ end
 
 {% highlight ruby %}
 # Default executor for commands
-class Core::Middleware::Executor < Core::Middleware
+class Core::Filter::Executor < Core::Filter
   # Runs a command
   # @return [[Core::Command], [Object]]
   def call
@@ -330,8 +330,8 @@ end
 
 # Conslusion
 
-As you can see, this approach makes code clear and flexible. Each command contains 5-10 lines of code for one certain purpose. These commands can be executed in different parts of an application such as a controller or some rake task. Moreover, middleware is a simple unit responsible for one action with a command. Just by adding, removing or rearranging middleware you can run your commands in many different ways.
+As you can see, this approach makes code clear and flexible. Each command contains 5-10 lines of code for one certain purpose. These commands can be executed in different parts of an application such as a controller or some rake task. Moreover, filter is a simple unit responsible for one action with a command. Just by adding, removing or rearranging filters you can run your commands in many different ways.
 
-Check the example [here](https://github.com/korolvs/thatsaboy).
+Check the example [here](https://github.com/korolvs/thatsaboy/tree/cda-ddd).
 
 And read about [the domain layer]({% post_url 2016-05-08-domain-driven-design-for-rails %}).
