@@ -19,8 +19,7 @@ So main parts are:
 
 - Services
 - Repositories
-- Factories
-- Viewers
+- Presenters
 - Entities
 
 ## Entities
@@ -41,6 +40,24 @@ class Goal::Goal < ActiveRecord::Base
   belongs_to :child, inverse_of: :goals, class_name: 'Family::Child'
   has_many   :actions, class_name: 'Goal::Action'
 
+  validates :name, presence: true, allow_blank: true, length: { maximum: 50 }
+  ...
+
+  # Creates a goal
+  # @param [User::User]    user
+  # @param [Family::Child] child
+  # @param [Integer]       target
+  # @param [String]        name
+  def initialize(user, child, target, name, photo_url)
+    super()
+    self.user = user
+    self.child = child
+    self.target = target
+    self.name = name
+    self.photo_url = photo_url
+    self.current = 0
+  end
+
   # Adds or removes points
   # @param [int] diff
   # @return [int]
@@ -51,34 +68,6 @@ class Goal::Goal < ActiveRecord::Base
     self.current = 0 if self.current < 0
     real_diff = self.current - real_diff
     real_diff
-  end
-end
-{% endhighlight %}
-
-## Factories
-
-Sometimes objects can be created in many different ways, and factories is needed only to create entities. They are also shouldn't know anything about how they will be used.
-
-{% highlight ruby %}
-#showme!
-# Contains methods to create families
-class Family::Factory::FamilyFactory
-  # Sets all variables
-  # @see Family::Family
-  def initialize
-    @model = Family::Family
-  end
-
-  # Creates a family
-  # @param [User::User] user
-  # @param [String] name
-  # @param [String] photo_url
-  def create(user, name = '', photo_url = nil)
-    model = @model.new
-    model.user = user
-    model.name = name
-    model.photo_url = photo_url
-    model
   end
 end
 {% endhighlight %}
@@ -155,38 +144,38 @@ class Goal::Service::GoalService
 end
 {% endhighlight %}
 
-## Viewers
+## Presenters
 
-Viewers are used to prepare entities for showing to users. It is nothing more to say.
+Presenters are used to prepare entities for showing to users. It is nothing more to say.
 
 {% highlight ruby %}
 #showme!
 # Contains methods to show adults and children
-class Family::Viewer::PersonViewer
-  # Sets all variables
-  # @see Goal::Viewer::GoalViewer
-  def initialize
-    @goal_viewer = Goal::Viewer::GoalViewer.new
+class Family::Presenter::PersonPresenter
+  # Creates a presenter
+  # @param [ActiveRecord::Base] person
+  def initialize(person)
+    @person = person
   end
 
   # Converts attributes to hash
-  # @param [ActiveRecord::Base] person
   # @return [Hash]
-  def person_to_hash(person)
+  def person_to_hash
     {
-      id: person.id,
-      name: person.name,
-      photo_url: person.photo_url
+      id: @person.id,
+      name: @person.name,
+      photo_url: @person.photo_url
     }
   end
 
   # Prepares goals to show to the user
-  # @param [Array] child_goals
+  # @param [Boolean] is_completed
   # @return [Array]
-  def child_goals_to_hash(child_goals)
+  def child_goals_to_hash(is_completed)
+    child_goals = Goal::Repository::GoalRepository.new.find_goals_by_child(@person, is_completed)
     return [] if child_goals.nil?
     child_goals.inject([]) do |goals, goal|
-      goals.push @goal_viewer.goal_to_hash(goal)
+      goals.push Goal::Presenter::GoalPresenter.new(goal).goal_to_hash
     end
   end
 end
@@ -194,7 +183,9 @@ end
 
 ## In addition
 
-There are also **Value Objects** and **Aggregates**.
+You can also use **Factories**, **Value Objects** and **Aggregates**.
+
+Sometimes objects can be created in many different ways. In this case **Factories** can keep methods for creating entities.
 
 A **Value Object** is an object that describes some characteristic or attribute but carries no concept of identity. The best example is location, composed of a country and a city. Location may be an attribute of a place and be presented by multiple fields in your database, but in your app it will be one object.
 
@@ -204,4 +195,4 @@ An **Aggregate** is a cluster of domain objects that can be treated as a single 
 
 Using this approach you will create more classes and code - it's bad, but you will never get your code messy or convoluted. In the end it will be very easy to find where needed methods are stored and where to add new.
 
-Check the example [here](https://github.com/korolvs/thatsaboy/tree/cda-ddd).
+Check the example [here](https://github.com/korolvs/thatsaboy).

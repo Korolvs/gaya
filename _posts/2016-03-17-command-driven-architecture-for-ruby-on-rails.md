@@ -24,11 +24,10 @@ So main primitives are:
 
 - Services
 - Repositories
-- Factories
-- Viewers
+- Presenters
 - Entities
  
-I will write about services, repositories, factories, viewers and entities in the [next part]({% post_url 2016-05-08-domain-driven-design-for-rails %}), so I am not touching them in this article. The only thing you need to know, that all logic applies to models should be placed in the domain layer.
+I will write about services, repositories, presenters and entities in the [next part]({% post_url 2016-05-08-domain-driven-design-for-rails %}), so I am not touching them in this article. The only thing you need to know, that all logic applies to models should be placed in the domain layer.
 
 ## Why should you read it?
 
