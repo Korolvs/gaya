@@ -7,11 +7,10 @@ meta_description: "Domain-driven design for Ruby on Rails."
 comments: true
 ---
 
-In [previous article]({% post_url 2016-03-17-command-driven-architecture-for-ruby-on-rails %}) I wrote about the application layer(controllers, filters and commands), so if you want to get the full vision of the architecture I am talking about - read the first part. Now let's talk about the domain layer.
 
-## Why do you need to use this approach instead of ordinary models?
+## Why do you need to use different approaches instead of ordinary models?
 
-Ordinal models are great for small projects, but when you have a large and frequently changing code, it is very important to have well organized architecture to know exactly, where you need to find, add and use needed features.
+Ordinary models are great for small projects, but when you have a large and frequently changing code, it is very important to have well organized architecture to know exactly, where you need to find, add and use needed features.
 
 Also it is important to keep all logic applies to models in the domain layer, because if you need to change some model behavior, you will change it only in one place.
 

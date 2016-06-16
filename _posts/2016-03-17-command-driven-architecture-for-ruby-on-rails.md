@@ -9,29 +9,15 @@ comments: true
 
 Ruby on Rails is a great framework for a quick start, but when project gets much bigger, tens of files in controllers, models and views directories can become a huge headache for a developer (especially if the developer made few bad decisions at the beginning of working on the project). Each edit affecting more than few files becomes a real problem. The best way to solve this problems is to use a good architecture from very start of developing the project.
 
-The architecture described in this article extends a common MVC approach with adding few new primitives to an application. It doesn't break the standart RoR approach, but only extends it.
-
-So main primitives are:
-
-*Application Layer:*
-
-- Commands
-- Filters
-- Controllers
-- Views
-
-*Domain Layer:*
-
-- Services
-- Repositories
-- Presenters
-- Entities
- 
-I will write about services, repositories, presenters and entities in the [next part]({% post_url 2016-05-08-domain-driven-design-for-rails %}), so I am not touching them in this article. The only thing you need to know, that all logic applies to models should be placed in the domain layer.
+The architecture described in this article extends the Controller part of MVC approach with adding few new primitives to an application. It doesn't break the standart RoR approach, but only extends it.
 
 ## Why should you read it?
 
-You should read it, because using such approach, you can achieve greater flexibility and ease of maintenance, when your project become bigger. Just read the next paragraph.
+You should read it, because using such approach, you can achieve greater flexibility and ease of maintenance, when your project become bigger.
+
+## Let's begin
+
+There are commands, controllers and filters in this architecture.
 
 Commands are simple classes with only one certain purpose. Controllers used to initialize commands and run them through a filters chain. Filter is a class with a method to do something and call a next filter. You can combine and rearrange filters as you like. The basic example is *Validator* -> *Executor* -> *Renderer*. Want to return JSON or write response to a file? Add custom logger before or after command execution? Or run commands asynchronously? Just add a filter!
 
