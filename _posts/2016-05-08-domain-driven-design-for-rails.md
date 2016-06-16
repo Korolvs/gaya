@@ -7,9 +7,6 @@ meta_description: "Domain-driven design for Ruby on Rails."
 comments: true
 ---
 
-
-## Why do you need to use different approaches instead of ordinary models?
-
 Ordinary models are great for small projects, but when you have a large and frequently changing code, it is very important to have well organized architecture to know exactly, where you need to find, add and use needed features.
 
 Also it is important to keep all logic applies to models in the domain layer, because if you need to change some model behavior, you will change it only in one place.
