@@ -3,23 +3,25 @@ layout: post
 title:  "Command-driven architecture for Ruby on Rails"
 date:   2016-03-17 11:00:55
 banner_image: command.jpg
-meta_description: "Ruby on Rails is a great framework for a quick start, but when project gets much bigger, tens of files in controllers, models and views directories can become a huge headache for a developer. The architecture described in this article extends a common MVC approach with adding few new primitives to an application. It doesn't break the standart RoR approach, but only extends it."
+meta_description: "Ruby on Rails is a great framework for a quick start, but when a project gets much bigger, tens of files in controllers, models, and views directories can become a huge headache for a developer. The architecture described in this article extends a common MVC approach with adding few new primitives to an application. It doesn't break the standard RoR approach, but only extends it."
 comments: true
 ---
 
-Ruby on Rails is a great framework for a quick start, but when project gets much bigger, tens of files in controllers, models and views directories can become a huge headache for a developer (especially if the developer made few bad decisions at the beginning of working on the project). Each edit affecting more than few files becomes a real problem. The best way to solve this problems is to use a good architecture from very start of developing the project.
+Ruby on Rails is a great framework for a quick start, but when a project gets much bigger, tens of files in controllers, models, and views directories can become a huge headache for a developer (especially if the developer made few bad decisions at the beginning of working on the project). Each edit affecting more than few files becomes a real problem. The best way to solve this problems is to use a good architecture from the very start of developing the project.
 
-The architecture described in this article extends the Controller part of MVC approach with adding few new primitives to an application. It doesn't break the standart RoR approach, but only extends it.
+The architecture described in this article extends the Controller part of MVC approach with adding few new primitives to an application. It doesn't break the standard RoR approach, but only extends it.
+
+If you want more "rails" architecture, check [this one]({% post_url 2016-06-21-refactoring-controller-actions-in-ruby-on-rails %}).
 
 ## Why should you read it?
 
-You should read it, because using such approach, you can achieve greater flexibility and ease of maintenance, when your project become bigger.
+You should read it because using such approach, you can achieve greater flexibility and ease of maintenance when your project become bigger.
 
 ## Let's begin
 
-There are commands, controllers and filters in this architecture.
+There are commands, controllers, and filters in this architecture.
 
-Commands are simple classes with only one certain purpose. Controllers used to initialize commands and run them through a filters chain. Filter is a class with a method to do something and call a next filter. You can combine and rearrange filters as you like. The basic example is *Validator* -> *Executor* -> *Renderer*. Want to return JSON or write response to a file? Add custom logger before or after command execution? Or run commands asynchronously? Just add a filter!
+Commands are simple classes with only one certain purpose. Controllers used to initialize commands and run them through a filters chain. Filter is a class with a method to do something and call the next filter. You can combine and rearrange filters as you like. The basic example is *Validator* -> *Executor* -> *Renderer*. Want to return JSON or write a response to a file? Add custom logger before or after command execution? Or run commands asynchronously? Just add a filter!
 
 If you want to see an example - [welcome](https://github.com/korolvs/thatsaboy/tree/cda-ddd)!
 
@@ -31,7 +33,7 @@ First of all, to avoid making a mess in the project it is needed to divide all f
 
 ## Command
 
-The basic primitive in this architecture is a command. Command is a separated action, for instance creating an object or deleting it. Each command contains a validation part and main part that makes all needed actions. Execute method contains business logic and can return a hash or nothing if it doesn’t needed.
+The basic primitive in this architecture is a command. Command is a separate action, for instance creating an object or deleting it. Each command contains a validation part and main part that makes all needed actions. Execute method contains business logic and can return a hash or nothing.
 
 Each command must be inherited from the `Core::Command` class(or its child, of course). Let's take a look at this class.
 
@@ -59,7 +61,7 @@ class Core::Command
 end
 {% endhighlight %}
 
-It includes `ActiveModel::Validations` module to do validation and a token attribute that is very common and needed for authorization. Also there are two methods:
+It includes `ActiveModel::Validations` module to do validation and a token attribute that is very common and needed for authorization. Also, there are two methods:
 
 - initialize - fills a command with given attributes and makes it very easy to use commands with different input parameters. Also here should be initialized all services and models used in the command
 - execute - dummy method which must be overridden in every child
@@ -97,9 +99,9 @@ end
 
 ### Validation
 
-In the original RoR architecture there is only a model validation, so why do we need to use an action validation? With this approach you can easily check all input parameters and return to a user what is exactly wrong before running the main code of a command . After this you don’t need to catch any validation errors in the code and it becomes much more clear. Also you can add a model validation.
+In the original RoR architecture there is only a model validation, so why do we need to use an action validation? With this approach, you can easily check all input parameters and return to a user what is exactly wrong before running the main code of a command . After this, you don’t need to catch any validation errors in the code and it becomes much clearer. Also, you can add a model validation.
 
-In commands you can use the same validators like in models and write your own. For instance, I wrote five common validators:
+In commands, you can use the same validators like in models and write your own. For instance, I wrote five common validators:
 
 - Exists
 - Unique
@@ -107,7 +109,7 @@ In commands you can use the same validators like in models and write your own. F
 - Owner
 - Uri
 
-Exists and unique validators have as a parameter a lamba function to use the result and check it.
+Exists, unique, and owner validators have a lambda function as a parameter to use the result and check it.
 
 {% highlight ruby %}
 #showme!
@@ -190,7 +192,7 @@ end
 
 ## Filters
 
-Filter is a class with a `call` method, which is responsible for making all needed actions with a command (or without it). Also there is a protected `next` method to call the next filter in a chain. Method `next` can be called after, before or even between main actions in the `call` method and must returns the command and the result of its actions.
+Filter is a class with a `call` method, which is responsible for making all needed actions with a command (or without it). Also, there is a protected `next` method to call the next filter in a chain. Method `next` can be called after, before or even between main actions in the `call` method and must return the command and the result of its actions.
 
 The default list of filters in a controller is:
 
@@ -200,7 +202,7 @@ The default list of filters in a controller is:
 - Core::Filter::ValidationChecker
 - Core::Filter::Executor
  
-Let's look on some examples:
+Let's look at some examples:
 
 ### ErrorRenderer
 
@@ -313,9 +315,9 @@ end
 
 
 
-# Conslusion
+# Conclusion
 
-As you can see, this approach makes code clear and flexible. Each command contains 5-10 lines of code for one certain purpose. These commands can be executed in different parts of an application such as a controller or some rake task. Moreover, filter is a simple unit responsible for one action with a command. Just by adding, removing or rearranging filters you can run your commands in many different ways.
+As you can see, this approach makes code clear and flexible. Each command contains 5-10 lines of code for one certain purpose. These commands can be executed in different parts of an application such as a controller or some rake task. Moreover, a filter is a simple unit responsible for one action with a command. Just by adding, removing or rearranging filters you can run your commands in many different ways.
 
 Check the example [here](https://github.com/korolvs/thatsaboy/tree/cda-ddd).
 
