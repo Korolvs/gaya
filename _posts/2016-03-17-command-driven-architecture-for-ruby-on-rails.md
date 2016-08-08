@@ -11,7 +11,7 @@ Ruby on Rails is a great framework for a quick start, but when a project gets mu
 
 The architecture described in this article extends the Controller part of MVC approach with adding few new primitives to an application. It doesn't break the standard RoR approach, but only extends it.
 
-If you want more "rails" architecture, check [this one]({% post_url 2016-06-21-refactoring-controller-actions-in-ruby-on-rails %}).
+**If you want more "rails" architecture, check [this one]({% post_url 2016-06-21-refactoring-controller-actions-in-ruby-on-rails %})**.
 
 ## Why should you read it?
 

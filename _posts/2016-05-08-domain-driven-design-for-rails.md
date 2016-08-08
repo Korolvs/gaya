@@ -103,30 +103,7 @@ If you need to do something with several entities, you can use services. Also, i
 {% highlight ruby %}
 #showme!
 # Contains methods to work with goals
-class Goal::Service::GoalService
-  # Sets all variables
-  # @see Goal::Goal
-  # @see Family::Child
-  # @see Goal::Action
-  # @see Goal::Factory::GoalFactory
-  def initialize
-    @model = Goal::Goal
-    @child_model = Family::Child
-    @action_model = Goal::Action
-    @goal_factory = Goal::Factory::GoalFactory.new
-  end
-
-  # Gets child goals
-  # @param [Family::Child] child
-  # @param [Boolean] completed
-  # @return [Goal::Goal][] goals
-  def get_goals_by_child(child, completed)
-    goals = child.goals.not_deleted
-    return goals if completed.nil?
-    return goals.where('current >= target') if completed
-    goals.where('current < target')
-  end
-
+class Goal::Service::GoalService < Core::Service
   # Adds or removes points
   # @param [Goal::Goal] goal
   # @param [Family::Adult] adult
@@ -134,10 +111,12 @@ class Goal::Service::GoalService
   # @return [int]
   def change_points(goal, adult, diff)
     real_diff = goal.change_points(diff)
-    @goal_factory.create_action_and_save(goal.user, goal, adult, real_diff)
+    action = Goal::Action.new(goal.user, goal, adult, real_diff)
+    Goal::Repository::ActionRepository.get.save!(action)
     goal
   end
 end
+
 {% endhighlight %}
 
 ## Presenters
@@ -147,34 +126,31 @@ Presenters prepare entities for showing to users. It is nothing more to say.
 {% highlight ruby %}
 #showme!
 # Contains methods to show adults and children
-class Family::Presenter::PersonPresenter
-  # Creates a presenter
-  # @param [ActiveRecord::Base] person
-  def initialize(person)
-    @person = person
-  end
-
+class Family::Presenter::PersonPresenter < Core::Presenter
   # Converts attributes to hash
+  # @param [ActiveRecord::Base] person
   # @return [Hash]
-  def person_to_hash
+  def person_to_hash(person)
     {
-      id: @person.id,
-      name: @person.name,
-      photo_url: @person.photo_url
+      id: person.id,
+      name: person.name,
+      photo_url: person.photo_url
     }
   end
 
   # Prepares goals to show to the user
+  # @param [ActiveRecord::Base] person
   # @param [Boolean] is_completed
   # @return [Array]
-  def child_goals_to_hash(is_completed)
-    child_goals = Goal::Repository::GoalRepository.new.find_goals_by_child(@person, is_completed)
+  def child_goals_to_hash(person, is_completed)
+    child_goals = Goal::Repository::GoalRepository.get.find_goals_by_child(person, is_completed)
     return [] if child_goals.nil?
     child_goals.inject([]) do |goals, goal|
-      goals.push Goal::Presenter::GoalPresenter.new(goal).goal_to_hash
+      goals.push Goal::Presenter::GoalPresenter.get.goal_to_hash(goal)
     end
   end
 end
+
 {% endhighlight %}
 
 ## In addition

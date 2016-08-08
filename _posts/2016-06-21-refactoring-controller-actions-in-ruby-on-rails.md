@@ -97,9 +97,9 @@ class Core::Filter::ErrorRenderer
       @controller = controller
       yield
     rescue Core::Errors::UnauthorizedError
-      self.render 401, :error => 'Unauthorized'
+      self.render 401, JSON.generate(:error => 'Unauthorized')
     rescue Core::Errors::ForbiddenError
-      self.render 403, :error => 'Forbidden'
+      self.render 403, JSON.generate(:error => 'Forbidden')
     rescue Core::Errors::ValidationError => e
       self.render 422, e.command.errors.to_json
     rescue StandardError => e
@@ -142,7 +142,7 @@ and check, that everything is alright:
 #showme!
 # Checks that command can be executed by the user
 def check_authorization
-  User::Service::AuthorizationService.new.get_token_by_command self
+  User::Service::AuthorizationService.get.get_token_by_command self
 end
 {% endhighlight %}
 
@@ -203,7 +203,7 @@ class Core::Command
 
   # Checks that command can be executed by the user
   def check_authorization
-    User::Service::AuthorizationService.new.get_token_by_command self
+    User::Service::AuthorizationService.get.get_token_by_command self
   end
 
   # Checks that all params are correct
@@ -233,8 +233,8 @@ class Family::Command::FamilyUpdateCommand < Core::Command
   # @see Family::Repository::FamilyRepository
   def initialize(params)
     super(params)
-    @authorization_service = User::Service::AuthorizationService.new
-    @family_repository = Family::Repository::FamilyRepository.new
+    @authorization_service = User::Service::AuthorizationService.get
+    @family_repository = Family::Repository::FamilyRepository.get
   end
 
   # Runs command
@@ -265,7 +265,7 @@ class Goal::Command::GoalDeleteCommand < Core::Command
   # @see Goal::Repository::GoalRepository
   def initialize(params)
     super(params)
-    @goal_repository = Goal::Repository::GoalRepository.new
+    @goal_repository = Goal::Repository::GoalRepository.get
   end
 
   # Runs command
@@ -288,8 +288,8 @@ class Family::Command::FamilyViewCommand < Core::Command
   # @see Family::Presenter::FamilyPresenter
   def initialize(params)
     super(params)
-    @authorization_service = User::Service::AuthorizationService.new
-    @family_presenter_class = Family::Presenter::FamilyPresenter
+    @authorization_service = User::Service::AuthorizationService.get
+    @family_presenter = Family::Presenter::FamilyPresenter.get
   end
 
   # Runs command
@@ -297,7 +297,7 @@ class Family::Command::FamilyViewCommand < Core::Command
   def execute
     user = @authorization_service.get_user_by_token_code(token)
     family = user.family
-    @family_presenter_class.new(family).family_to_hash
+    @family_presenter.family_to_hash(family)
   end
 end
 {% endhighlight %}
