@@ -46,7 +46,7 @@ So we have architecture like this:
 
 ### Step 1
 
-Run `dockec-compose build api` to build new API.
+Run `docker-compose build api` to build new API.
 
 ### Step 2
 
