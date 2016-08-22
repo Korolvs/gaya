@@ -77,7 +77,7 @@ Each repository contains common methods included in `Core::Repository`: `find`, 
 {% highlight ruby %}
 #showme!
 # Contains methods to work with adults and children entities
-class Family::Repository::PersonRepository < Core::Repository
+class Family::PersonRepository < Core::Repository
   include Core::Deletable
   # Sets all variables
   # @see Family::Child
@@ -103,7 +103,7 @@ If you need to do something with several entities, you can use services. Also, i
 {% highlight ruby %}
 #showme!
 # Contains methods to work with goals
-class Goal::Service::GoalService < Core::Service
+class Goal::GoalService < Core::Service
   # Adds or removes points
   # @param [Goal::Goal] goal
   # @param [Family::Adult] adult
@@ -112,7 +112,7 @@ class Goal::Service::GoalService < Core::Service
   def change_points(goal, adult, diff)
     real_diff = goal.change_points(diff)
     action = Goal::Action.new(goal.user, goal, adult, real_diff)
-    Goal::Repository::ActionRepository.get.save!(action)
+    Goal::ActionRepository.get.save!(action)
     goal
   end
 end
@@ -126,7 +126,7 @@ Presenters prepare entities for showing to users. It is nothing more to say.
 {% highlight ruby %}
 #showme!
 # Contains methods to show adults and children
-class Family::Presenter::PersonPresenter < Core::Presenter
+class Family::PersonPresenter < Core::Presenter
   # Converts attributes to hash
   # @param [ActiveRecord::Base] person
   # @return [Hash]
@@ -143,10 +143,10 @@ class Family::Presenter::PersonPresenter < Core::Presenter
   # @param [Boolean] is_completed
   # @return [Array]
   def child_goals_to_hash(person, is_completed)
-    child_goals = Goal::Repository::GoalRepository.get.find_goals_by_child(person, is_completed)
+    child_goals = Goal::GoalRepository.get.find_goals_by_child(person, is_completed)
     return [] if child_goals.nil?
     child_goals.inject([]) do |goals, goal|
-      goals.push Goal::Presenter::GoalPresenter.get.goal_to_hash(goal)
+      goals.push Goal::GoalPresenter.get.goal_to_hash(goal)
     end
   end
 end

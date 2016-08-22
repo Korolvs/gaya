@@ -18,30 +18,30 @@ First of all, we don't want to have controllers with hundreds of lines of the co
 # Goal controller
 class Goal::GoalController < Core::Controller
   # Shows a goal
-  # @see Goal::Command::GoalViewCommand
+  # @see Goal::GoalViewCommand
   def view
-    command = Goal::Command::GoalViewCommand.new(params)
+    command = Goal::GoalViewCommand.new(params)
     run(command)
   end
 
   # Updates a goal
-  # @see Goal::Command::GoalUpdateCommand
+  # @see Goal::GoalUpdateCommand
   def update
-    command = Goal::Command::GoalUpdateCommand.new(params)
+    command = Goal::GoalUpdateCommand.new(params)
     run(command)
   end
 
   # Deletes a goal
-  # @see Goal::Command::GoalDeleteCommand
+  # @see Goal::GoalDeleteCommand
   def delete
-    command = Goal::Command::GoalDeleteCommand.new(params)
+    command = Goal::GoalDeleteCommand.new(params)
     run(command)
   end
 
   # Adds or removes points
-  # @see Goal::Command::GoalPointsUpdateCommand
+  # @see Goal::GoalPointsUpdateCommand
   def points_update
-    command = Goal::Command::GoalPointsUpdateCommand.new(params)
+    command = Goal::GoalPointsUpdateCommand.new(params)
     run(command)
   end
 end
@@ -66,7 +66,7 @@ class Core::Controller < ActionController::Base
   around_action Core::Filter::ErrorRenderer
 
   # Runs the action
-  # @param [Core::Command] command
+  # @param [Core] command
   # @see Core::FilterChain
   def run(command)
     command.check_authorization
@@ -119,7 +119,7 @@ end
 
 ## Command class
 
-Thus, we need to create *check_authorization*, *check_validation* and *execute* methods in **Core::Command** class.
+Thus, we need to create *check_authorization*, *check_validation* and *execute* methods in **Core** class.
 
 ### Authorization
 
@@ -142,7 +142,7 @@ and check, that everything is alright:
 #showme!
 # Checks that command can be executed by the user
 def check_authorization
-  User::Service::AuthorizationService.get.get_token_by_command self
+  User::AuthorizationService.get.get_token_by_command self
 end
 {% endhighlight %}
 
@@ -175,7 +175,7 @@ Finally, we have:
 {% highlight ruby %}
 #showme!
 # Contains common methods for commands
-class Core::Command
+class Core
   include ActiveModel::Validations
 
   attr_accessor :token
@@ -203,7 +203,7 @@ class Core::Command
 
   # Checks that command can be executed by the user
   def check_authorization
-    User::Service::AuthorizationService.get.get_token_by_command self
+    User::AuthorizationService.get.get_token_by_command self
   end
 
   # Checks that all params are correct
@@ -220,7 +220,7 @@ Now, when we know how commands should be written, let's look at some examples
 {% highlight ruby %}
 #showme!
 # Update family command
-class Family::Command::FamilyUpdateCommand < Core::Command
+class Family::FamilyUpdateCommand < Core
   attr_accessor :name, :photo_url
 
   validates :name,      length: { maximum: 50 }
@@ -229,12 +229,12 @@ class Family::Command::FamilyUpdateCommand < Core::Command
 
   # Sets all variables
   # @param [Object] params
-  # @see User::Service::AuthorizationService
-  # @see Family::Repository::FamilyRepository
+  # @see User::AuthorizationService
+  # @see Family::FamilyRepository
   def initialize(params)
     super(params)
-    @authorization_service = User::Service::AuthorizationService.get
-    @family_repository = Family::Repository::FamilyRepository.get
+    @authorization_service = User::AuthorizationService.get
+    @family_repository = Family::FamilyRepository.get
   end
 
   # Runs command
@@ -252,7 +252,7 @@ end
 {% highlight ruby %}
 #showme!
 # Delete a goal command
-class Goal::Command::GoalDeleteCommand < Core::Command
+class Goal::GoalDeleteCommand < Core
   attr_accessor :id
   attr_accessor :goal_repository
 
@@ -262,10 +262,10 @@ class Goal::Command::GoalDeleteCommand < Core::Command
 
   # Sets all variables
   # @param [Object] params
-  # @see Goal::Repository::GoalRepository
+  # @see Goal::GoalRepository
   def initialize(params)
     super(params)
-    @goal_repository = Goal::Repository::GoalRepository.get
+    @goal_repository = Goal::GoalRepository.get
   end
 
   # Runs command
@@ -281,15 +281,15 @@ end
 {% highlight ruby %}
 #showme!
 # View a family command
-class Family::Command::FamilyViewCommand < Core::Command
+class Family::FamilyViewCommand < Core
   # Sets all variables
   # @param [Object] params
-  # @see User::Service::AuthorizationService
-  # @see Family::Presenter::FamilyPresenter
+  # @see User::AuthorizationService
+  # @see Family::FamilyPresenter
   def initialize(params)
     super(params)
-    @authorization_service = User::Service::AuthorizationService.get
-    @family_presenter = Family::Presenter::FamilyPresenter.get
+    @authorization_service = User::AuthorizationService.get
+    @family_presenter = Family::FamilyPresenter.get
   end
 
   # Runs command
